@@ -1,0 +1,100 @@
+#!/bin/sh
+
+# set -ex
+
+DOTNET_MANAGER_DIR="$HOME/.dotnetvm"
+DOTNET_CONDIDATES_DIR="$DOTNET_MANAGER_DIR/condidates"
+
+install_dotnet() {
+  VERSION=$1
+
+  if [ -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
+    echo "The version $VERSION has already existed in your system!"
+    exit;
+  fi
+
+  mkdir -p "$DOTNET_CONDIDATES_DIR/$VERSION"
+  curl -L "https://builds.dotnet.microsoft.com/dotnet/Sdk/$VERSION/dotnet-sdk-$VERSION-osx-arm64.tar.gz" | tar -xz -C "$DOTNET_CONDIDATES_DIR/$VERSION"
+  echo "Installed .NET SDK $VERSION in $DOTNET_CONDIDATES_DIR/$VERSION"
+  echo "Switching to .NET SDK $VERSION"
+  use_dotnet $VERSION
+}
+
+use_dotnet() {
+  VERSION=$1
+   
+  # export DOTNET_ROOT="$DOTNET_CONDIDATES_DIR/$VERSION"
+  # export PATH="$DOTNET_ROOT:$PATH"
+  if [ ! -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
+    echo "the version does not exist in your system!"
+    exit;  
+  fi
+
+  if [ -d "$DOTNET_CONDIDATES_DIR/current" ]; then 
+    rm -fr "$DOTNET_CONDIDATES_DIR/current"
+  fi
+  ln -s "$DOTNET_CONDIDATES_DIR/$VERSION" "$DOTNET_CONDIDATES_DIR/current"
+  echo "Now using .NET SDK $VERSION"
+}
+
+list_installed_dotnet_versions() {
+  if [ ! -d "$DOTNET_CONDIDATES_DIR" ] || [ -z "$(ls -A "$DOTNET_CONDIDATES_DIR")" ]; then
+    echo "There has not installed any dotnet version yet!"
+    exit;
+  fi
+
+  ls -l $DOTNET_CONDIDATES_DIR | tail -n +2 | awk '{if ($9 ~ /current/) print $9 " -> " substr($NF, length($NF) - 6, 7); else print $9}'
+}
+
+list_remote_dotnet_versions() {
+  # curl -s https://dotnetcli.azureedge.net/dotnet/release-metadata/releases-index.json | ./jq '."releases-index".[]."latest-sdk"'
+  curl -s https://dotnetcli.azureedge.net/dotnet/release-metadata/releases-index.json \
+  | ./jq '."releases-index".[] | {version: ."latest-sdk", "latest-release-date": ."latest-release-date", "eol-date": ."eol-date", "support-phase": ."support-phase" }'
+}
+
+remove_dotnet_version() {
+  VERSION=$1
+  if [ -z "$VERSION" ]; then
+    echo "The version number can not be empty!"
+    exit;
+  fi
+
+  if [ ! -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
+    echo "The version $VERSION does not exist in your system!"
+  fi
+
+  rm -fr "$DOTNET_CONDIDATES_DIR/$VERSION"
+}
+
+clean_up_all_dotnet_versions() {
+  rm -fr $DOTNET_CONDIDATES_DIR
+  mkdir $DOTNET_CONDIDATES_DIR
+}
+
+list_options() {
+  echo "install: install dotnet with the given version"
+  echo
+  echo "use: Switching dotnet version"
+  echo
+  echo "list: List installed dotnet versions"
+  echo
+  echo "list-remote: List all dotnet versions"
+  echo
+  echo "remove: Remove the given version of dotnet"
+  echo
+  echo "clean-all: Remove all installed dotnet"
+  echo
+  echo "help: list all command options"
+}
+
+case $1 in
+  install) install_dotnet $2 ;;
+  use) use_dotnet $2 ;;
+  list) list_installed_dotnet_versions ;;
+  list-remote) list_remote_dotnet_versions ;;
+  remove) remove_dotnet_version $2 ;;
+  clean-all) clean_up_all_dotnet_versions ;;
+  help) list_options ;;
+  *) echo "The argument is incorrect. Please use `dotnetvm help` for more information" ;;
+esac
+

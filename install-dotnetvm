@@ -1,0 +1,33 @@
+#!/bin/sh
+
+DOTNET_MANAGER_DIR="$HOME/.dotnetvm"
+
+if [ ! -d "$DOTNET_MANAGER_DIR" ]; then
+  echo "Creating .NET manager folder at $HOME"
+  cp -a ./dotnetvm "$DOTNET_MANAGER_DIR"
+fi
+
+if [ ! -f "$DOTNET_MANAGER_DIR/dotnetvm" ]; then
+  cp ./dotnetvm/dotnetvm $DOTNET_MANAGER_DIR/dotnetvm
+fi
+
+if [ ! -f "$DOTNET_MANAGER_DIR/jq" ]; then
+  curl -L https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-macos-amd64 -o "$DOTNET_MANAGER_DIR/jq" && chmod +x "$DOTNET_MANAGER_DIR/jq"
+fi
+
+echo "Adding .NET manager to your environment path and save it into ~/.zshrc file"
+
+cat <<EOF >> ~/.zshrc
+
+# dotnet version manager
+export DOTNET_VERSION_MANAGER_ROOT="\$HOME/.dotnetvm"
+export PATH=\$DOTNET_VERSION_MANAGER_ROOT:\$PATH
+
+# dotnet
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_ROOT=\$DOTNET_VERSION_MANAGER_ROOT/condidates/current
+export PATH=\$DOTNET_ROOT:\$DOTNET_ROOT/tools:\$PATH
+
+EOF
+
+echo "Done of the .NET manager installation!"
