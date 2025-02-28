@@ -23,8 +23,6 @@ install_dotnet() {
 use_dotnet() {
   VERSION=$1
    
-  # export DOTNET_ROOT="$DOTNET_CONDIDATES_DIR/$VERSION"
-  # export PATH="$DOTNET_ROOT:$PATH"
   if [ ! -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
     echo "the version does not exist in your system!"
     exit;  
@@ -49,7 +47,7 @@ list_installed_dotnet_versions() {
 list_remote_dotnet_versions() {
   # curl -s https://dotnetcli.azureedge.net/dotnet/release-metadata/releases-index.json | ./jq '."releases-index".[]."latest-sdk"'
   curl -s https://dotnetcli.azureedge.net/dotnet/release-metadata/releases-index.json \
-  | ./jq '."releases-index".[] | {version: ."latest-sdk", "latest-release-date": ."latest-release-date", "eol-date": ."eol-date", "support-phase": ."support-phase" }'
+  | $DOTNET_MANAGER_DIR/jq '."releases-index".[] | {version: ."latest-sdk", "latest-release-date": ."latest-release-date", "eol-date": ."eol-date", "support-phase": ."support-phase" }'
 }
 
 remove_dotnet_version() {
