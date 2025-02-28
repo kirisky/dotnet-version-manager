@@ -24,7 +24,7 @@ use_dotnet() {
   VERSION=$1
    
   if [ ! -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
-    echo "the version does not exist in your system!"
+    echo "the version does not exist in your system! Please install it first!"
     exit;  
   fi
 
@@ -45,7 +45,14 @@ list_installed_dotnet_versions() {
 }
 
 list_remote_dotnet_versions() {
-  # curl -s https://dotnetcli.azureedge.net/dotnet/release-metadata/releases-index.json | ./jq '."releases-index".[]."latest-sdk"'
+
+  if [ ! -f "$DOTNET_MANAGER_DIR/jq" ]; then
+    echo "The jq does not exist, now downloading it!"
+    curl -L https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-macos-amd64 -o "$DOTNET_MANAGER_DIR/jq" && chmod +x "$DOTNET_MANAGER_DIR/jq"
+    echo
+    echo "Done of the downloading!"
+  fi
+
   curl -s https://dotnetcli.azureedge.net/dotnet/release-metadata/releases-index.json \
   | $DOTNET_MANAGER_DIR/jq '."releases-index".[] | {version: ."latest-sdk", "latest-release-date": ."latest-release-date", "eol-date": ."eol-date", "support-phase": ."support-phase" }'
 }
@@ -70,6 +77,7 @@ clean_up_all_dotnet_versions() {
 }
 
 list_options() {
+  echo
   echo "install: install dotnet with the given version"
   echo
   echo "use: Switching dotnet version"
@@ -93,6 +101,6 @@ case $1 in
   remove) remove_dotnet_version $2 ;;
   clean-all) clean_up_all_dotnet_versions ;;
   help) list_options ;;
-  *) echo "The argument is incorrect. Please use `dotnetvm help` for more information" ;;
+  *) echo "The argument is incorrect. Please use the following options:" && dotnetvm help ;;
 esac
 
