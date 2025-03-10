@@ -41,7 +41,7 @@ list_installed_dotnet_versions() {
     exit;
   fi
 
-  ls -l $DOTNET_CANDIDATES_DIR | tail -n +2 | awk '{if ($9 ~ /current/) print $9 " -> " substr($NF, length($NF) - 6, 7); else print $9}'
+  ls -l $DOTNET_CANDIDATES_DIR | tail -n +2 | awk '{if ($9 ~ /current/) {split($NF, parts, "/"); print $9 " -> " parts[length(parts)];} else print $9}'
 }
 
 list_remote_dotnet_versions() {
