@@ -3,19 +3,19 @@
 # set -ex
 
 DOTNET_MANAGER_DIR="$HOME/.dotnetvm"
-DOTNET_CONDIDATES_DIR="$DOTNET_MANAGER_DIR/condidates"
+DOTNET_CANDIDATES_DIR="$DOTNET_MANAGER_DIR/candidates"
 
 install_dotnet() {
   VERSION=$1
 
-  if [ -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
+  if [ -d "$DOTNET_CANDIDATES_DIR/$VERSION" ]; then 
     echo "The version $VERSION has already existed in your system!"
     exit;
   fi
 
-  mkdir -p "$DOTNET_CONDIDATES_DIR/$VERSION"
-  curl -L "https://builds.dotnet.microsoft.com/dotnet/Sdk/$VERSION/dotnet-sdk-$VERSION-osx-arm64.tar.gz" | tar -xz -C "$DOTNET_CONDIDATES_DIR/$VERSION"
-  echo "Installed .NET SDK $VERSION in $DOTNET_CONDIDATES_DIR/$VERSION"
+  mkdir -p "$DOTNET_CANDIDATES_DIR/$VERSION"
+  curl -L "https://builds.dotnet.microsoft.com/dotnet/Sdk/$VERSION/dotnet-sdk-$VERSION-osx-arm64.tar.gz" | tar -xz -C "$DOTNET_CANDIDATES_DIR/$VERSION"
+  echo "Installed .NET SDK $VERSION in $DOTNET_CANDIDATES_DIR/$VERSION"
   echo "Switching to .NET SDK $VERSION"
   use_dotnet $VERSION
 }
@@ -23,25 +23,25 @@ install_dotnet() {
 use_dotnet() {
   VERSION=$1
    
-  if [ ! -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
+  if [ ! -d "$DOTNET_CANDIDATES_DIR/$VERSION" ]; then 
     echo "the version does not exist in your system! Please install it first!"
     exit;  
   fi
 
-  if [ -d "$DOTNET_CONDIDATES_DIR/current" ]; then 
-    rm -fr "$DOTNET_CONDIDATES_DIR/current"
+  if [ -d "$DOTNET_CANDIDATES_DIR/current" ]; then 
+    rm -fr "$DOTNET_CANDIDATES_DIR/current"
   fi
-  ln -s "$DOTNET_CONDIDATES_DIR/$VERSION" "$DOTNET_CONDIDATES_DIR/current"
+  ln -s "$DOTNET_CANDIDATES_DIR/$VERSION" "$DOTNET_CANDIDATES_DIR/current"
   echo "Now using .NET SDK $VERSION"
 }
 
 list_installed_dotnet_versions() {
-  if [ ! -d "$DOTNET_CONDIDATES_DIR" ] || [ -z "$(ls -A "$DOTNET_CONDIDATES_DIR")" ]; then
+  if [ ! -d "$DOTNET_CANDIDATES_DIR" ] || [ -z "$(ls -A "$DOTNET_CANDIDATES_DIR")" ]; then
     echo "There has not installed any dotnet version yet!"
     exit;
   fi
 
-  ls -l $DOTNET_CONDIDATES_DIR | tail -n +2 | awk '{if ($9 ~ /current/) print $9 " -> " substr($NF, length($NF) - 6, 7); else print $9}'
+  ls -l $DOTNET_CANDIDATES_DIR | tail -n +2 | awk '{if ($9 ~ /current/) print $9 " -> " substr($NF, length($NF) - 6, 7); else print $9}'
 }
 
 list_remote_dotnet_versions() {
@@ -64,16 +64,16 @@ remove_dotnet_version() {
     exit;
   fi
 
-  if [ ! -d "$DOTNET_CONDIDATES_DIR/$VERSION" ]; then 
+  if [ ! -d "$DOTNET_CANDIDATES_DIR/$VERSION" ]; then 
     echo "The version $VERSION does not exist in your system!"
   fi
 
-  rm -fr "$DOTNET_CONDIDATES_DIR/$VERSION"
+  rm -fr "$DOTNET_CANDIDATES_DIR/$VERSION"
 }
 
 clean_up_all_dotnet_versions() {
-  rm -fr $DOTNET_CONDIDATES_DIR
-  mkdir $DOTNET_CONDIDATES_DIR
+  rm -fr $DOTNET_CANDIDATES_DIR
+  mkdir $DOTNET_CANDIDATES_DIR
 }
 
 list_options() {
